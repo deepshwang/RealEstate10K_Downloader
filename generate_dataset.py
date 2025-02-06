@@ -17,13 +17,15 @@ failure_log_lock = Lock()
 def download_and_process(data, vid, num_videos, mode, output_root):
     videoname = data.url.split("=")[-1]
     print(f"[INFO] Downloading {vid + 1}/{num_videos}: {videoname} ...")
+    cookiefile = f"cookies_{videoname}.txt"
     try:
         # pytube is unstable, use yt_dlp instead
         ydl_opts = {
             "format": "bestvideo[height<=480]",
             "outtmpl": f"./{videoname}",
-            "cookiefile": "./cookies.txt",
+            "cookiefile": cookiefile,
         }
+
 
         # Initialize yt_dlp and download the video
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -41,7 +43,7 @@ def download_and_process(data, vid, num_videos, mode, output_root):
             [(data, seq_id, videoname, output_root) for seq_id in range(len(data))],
         )
     os.system("rm " + videoname)  # remove videos
-
+    os.system("rm " + cookiefile)  # remove cookie file
 
 class Data:
     def __init__(self, url, seqname, list_timestamps):
