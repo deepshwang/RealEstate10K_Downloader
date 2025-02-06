@@ -119,13 +119,21 @@ def wrap_process(list_args):
 
 
 class DataDownloader:
-    def __init__(self, dataroot, mode="test"):
+    def __init__(self, dataroot, mode="test", split_idx=0, num_splits=1, num_threads=4):
         print("[INFO] Loading data list ... ", end="")
         self.dataroot = dataroot
         self.list_seqnames = sorted(glob.glob(dataroot + "/*.txt"))
+        # Split the sequence list into num_splits parts and take split_idx-th part
+        if split_idx is not None and num_splits is not None:
+            total_seqs = len(self.list_seqnames)
+            split_size = total_seqs // num_splits
+            start_idx = split_idx * split_size
+            end_idx = start_idx + split_size if split_idx < num_splits - 1 else total_seqs
+            self.list_seqnames = self.list_seqnames[start_idx:end_idx]
+
         self.output_root = "./dataset/" + mode + "/"
         self.mode = mode
-
+        self.num_threads = num_threads
         os.makedirs(self.output_root, exist_ok=True)
 
         self.list_data = []
@@ -163,10 +171,11 @@ class DataDownloader:
     def run(self):
         num_videos = len(self.list_data)
         print(f"[INFO] Start downloading {num_videos} movies")
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=self.num_threads) as executor:
             futures = [
                 executor.submit(
                     download_and_process,
+
                     data,
                     vid,
                     num_videos,
@@ -196,12 +205,23 @@ class DataDownloader:
 
 
 if __name__ == "__main__":
-    assert len(sys.argv) == 2, "usage: generate_dataset.py [test or train]"
-    assert sys.argv[1] in ["test", "train"], sys.argv[1]
-    mode = sys.argv[1]
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Download and process RealEstate10K dataset')
+    parser.add_argument('mode', choices=['test', 'train'], help='Dataset split to process (test or train)')
+    parser.add_argument('--split_idx', type=int, default=None, help='Index of current split')
+    parser.add_argument('--num_splits', type=int, default=None, help='Total number of splits')
+    parser.add_argument('--num_threads', type=int, default=8, help='Number of download threads to use')
+    args = parser.parse_args()
+
+    mode = args.mode
+    split_idx = args.split_idx
+    num_splits = args.num_splits
+    num_threads = args.num_threads
 
     dataroot = "./RealEstate10K/" + mode
-    downloader = DataDownloader(dataroot, mode)
+    downloader = DataDownloader(dataroot, mode, split_idx, num_splits, num_threads)
+
 
     downloader.show()
     downloader.run()
