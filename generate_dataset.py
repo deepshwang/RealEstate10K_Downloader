@@ -18,6 +18,12 @@ def download_and_process(data, vid, num_videos, mode, output_root):
     videoname = data.url.split("=")[-1]
     print(f"[INFO] Downloading {vid + 1}/{num_videos}: {videoname} ...")
     cookiefile = f"cookies_{videoname}.txt"
+    # Check if output directory already exists
+    for seq_id in range(len(data)):
+        seqname = data.list_seqnames[seq_id]
+        if os.path.exists(output_root + seqname):
+            print(f"[INFO] Skipping {videoname} - {seqname} already exists")
+            return
     try:
         # pytube is unstable, use yt_dlp instead
         ydl_opts = {
