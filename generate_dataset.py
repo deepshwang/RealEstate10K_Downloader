@@ -111,16 +111,16 @@ def process(data, seq_id, videoname, output_root):
 
     png_list = glob.glob(output_root + "/" + seqname + "/*.png")
 
-    for pngname in png_list:
-        image = io.imread(pngname)
-        if int(image.shape[1] / 2) < 500:
-            break
-        image = resize(
-            image,
-            (int(image.shape[0] / 2), int(image.shape[1] / 2)),
-            anti_aliasing=True,
-        )
-        image = (image * 255).astype("uint8")
+    # for pngname in png_list:
+    #     image = io.imread(pngname)
+    #     if int(image.shape[1] / 2) < 500:
+    #         break
+    #     image = resize(
+    #         image,
+    #         (int(image.shape[0] / 2), int(image.shape[1] / 2)),
+    #         anti_aliasing=True,
+    #     )
+    #     image = (image * 255).astype("uint8")
     return False
 
 
